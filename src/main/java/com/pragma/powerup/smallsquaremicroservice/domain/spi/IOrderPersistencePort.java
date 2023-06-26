@@ -11,7 +11,7 @@ public interface IOrderPersistencePort {
 
     void saveOrderAll(List<Order> orders);
 
-    Order getOrderEmployee(Long idOrder,Long idChef);
+    Order getOrderEmployee(Long idOrder, Long idChef);
 
-    Order getOrderClient(Long idOrder,Long idClient);
+    Order getOrderClient(Long idOrder, Long idClient);
 }

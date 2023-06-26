@@ -8,5 +8,5 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(name = "messenger-microservice", configuration = FeignClientConfig.class, url = "${messenger-microservice.url}")
 public interface IMessageClient {
     @PostMapping("/sms/")
-    void sendPinSMS(@RequestBody String msm);
+    void sendSMS(@RequestBody String sms);
 }

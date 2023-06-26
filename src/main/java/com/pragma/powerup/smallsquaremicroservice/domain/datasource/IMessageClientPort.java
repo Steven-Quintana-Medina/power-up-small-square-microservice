@@ -1,7 +1,7 @@
 package com.pragma.powerup.smallsquaremicroservice.domain.datasource;
 
-public interface IMessageClientPort {
-    void sendPinSms(String sms);
+import java.util.Map;
 
-    void sendMessageDelivered();
+public interface IMessageClientPort {
+    void sendPinSms(Map<String, String> sms);
 }

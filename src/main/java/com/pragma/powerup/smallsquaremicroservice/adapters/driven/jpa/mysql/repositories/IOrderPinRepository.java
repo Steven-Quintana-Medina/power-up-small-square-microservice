@@ -9,5 +9,5 @@ import java.util.Optional;
 
 public interface IOrderPinRepository extends JpaRepository<OrderPinEntity, Long> {
     @Query("SELECT op FROM OrderPinEntity WHEN op.pin = :pin AND op.idOrder.idChef = :idChef")
-    Optional<OrderPinEntity> findByPin(@Param("pin")String pin,@Param("idChef") Long idChef);
+    Optional<OrderPinEntity> findByPin(@Param("pin") String pin, @Param("idChef") Long idChef);
 }
