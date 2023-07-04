@@ -2,6 +2,7 @@ package com.pragma.powerup.smallsquaremicroservice.domain.usercase;
 
 import com.pragma.powerup.smallsquaremicroservice.domain.api.IOrderServicePort;
 import com.pragma.powerup.smallsquaremicroservice.domain.datasource.IMessageClientPort;
+import com.pragma.powerup.smallsquaremicroservice.domain.datasource.ITraceabilityClientPort;
 import com.pragma.powerup.smallsquaremicroservice.domain.datasource.IUserClientPort;
 import com.pragma.powerup.smallsquaremicroservice.domain.enums.EnumStatusOrder;
 import com.pragma.powerup.smallsquaremicroservice.domain.exceptions.InvalidAssignEmployeeOrderException;
@@ -14,7 +15,9 @@ import com.pragma.powerup.smallsquaremicroservice.domain.spi.IOrderPersistencePo
 import com.pragma.powerup.smallsquaremicroservice.domain.spi.IOrderPinPersistencePort;
 import com.pragma.powerup.smallsquaremicroservice.domain.spi.IRestaurantEmployeePersistencePort;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.pragma.powerup.smallsquaremicroservice.domain.services.OrderService.*;
@@ -28,14 +31,16 @@ public class OrderUseCase implements IOrderServicePort {
     private final IUserClientPort userClientPort;
     private final IMessageClientPort messageClientPort;
     private final IOrderPinPersistencePort orderPinPersistencePort;
+    private final ITraceabilityClientPort traceabilityClientPort;
 
-    public OrderUseCase(IOrderPersistencePort orderPersistencePort, IOrderDishPersistencePort orderDishPersistencePort, IRestaurantEmployeePersistencePort restaurantEmployeePersistencePort, IUserClientPort userClientPort, IMessageClientPort messageClientPort, IOrderPinPersistencePort orderPinPersistencePort) {
+    public OrderUseCase(IOrderPersistencePort orderPersistencePort, IOrderDishPersistencePort orderDishPersistencePort, IRestaurantEmployeePersistencePort restaurantEmployeePersistencePort, IUserClientPort userClientPort, IMessageClientPort messageClientPort, IOrderPinPersistencePort orderPinPersistencePort, ITraceabilityClientPort traceabilityClientPort) {
         this.orderPersistencePort = orderPersistencePort;
         this.orderDishPersistencePort = orderDishPersistencePort;
         this.restaurantEmployeePersistencePort = restaurantEmployeePersistencePort;
         this.userClientPort = userClientPort;
         this.messageClientPort = messageClientPort;
         this.orderPinPersistencePort = orderPinPersistencePort;
+        this.traceabilityClientPort = traceabilityClientPort;
     }
 
     @Override
@@ -45,23 +50,27 @@ public class OrderUseCase implements IOrderServicePort {
         order.setStatus(EnumStatusOrder.PENDIENTE);
         Order orderEntity = orderPersistencePort.saveOrder(order);
 
+        Map<String, Object> clientInfo = userClientPort.getUserClient(idClient);
         order.getOrderDishes().forEach(orderDish -> orderDish.setIdOrder(orderEntity));
+
         orderDishPersistencePort.saveOrderDish(order.getOrderDishes());
+        traceabilityClientPort.saveTraceability(createTraceabilityMap(orderEntity, EnumStatusOrder.PENDIENTE.toString(), clientInfo,null));
     }
 
     @Override
-    public void updateStatusToReady(Long id,Long idEmoployee) {
-        Order order = orderPersistencePort.getOrderEmployee(id,idEmoployee);
+    public void updateStatusToReady(Long id, Long idEmployee) {
+        Order order = orderPersistencePort.getOrderEmployee(id, idEmployee);
         validOrderReady(order, id);
         order.setStatus(EnumStatusOrder.LISTO);
-        String phone = userClientPort.getClient(order.getIdClient());
-        exists(phone);
 
+        String phone = userClientPort.getUserClient(order.getIdClient()).get("phone").toString();
         String pin = codeSms(order, phone);
-        messageClientPort.sendPinSms(createJson(order, phone, pin));
 
+        Map<String, Object> clientInfo = userClientPort.getUserClient(order.getIdClient());
+        messageClientPort.sendPinSms(createMessageMap(order, phone, pin));
         orderPinPersistencePort.saveOrderPin(new OrderPin(order, pin));
         orderPersistencePort.saveOrder(order);
+        traceabilityClientPort.saveTraceability(createTraceabilityMap(order, EnumStatusOrder.EN_PREPARACION.toString(), clientInfo,null));
     }
 
     @Override
@@ -85,6 +94,7 @@ public class OrderUseCase implements IOrderServicePort {
     @Override
     public List<Order> assignEmployeeOrder(int pageNumber, int pageSize, String statusOrder, List<Long> idOrders, Long idEmployee) {
         List<Order> orders = getRestaurantOrder(pageNumber, pageSize, statusOrder, idEmployee);
+        List<Map<String, Object>> traceabilityBatchMaps = new ArrayList<>();
         for (Long idOrder : idOrders) {
             boolean idFound = false;
             for (Order order : orders) {
@@ -102,6 +112,7 @@ public class OrderUseCase implements IOrderServicePort {
             }
         }
         orderPersistencePort.saveOrderAll(orders);
+        traceabilityClientPort.updateTraceabilityBatch(traceabilityBatchMaps);
         return orders;
     }
 
@@ -114,9 +125,7 @@ public class OrderUseCase implements IOrderServicePort {
 
     @Override
     public void updateStatusToCancel(Long idOrder, Long idClient) {
-        Order order = orderPersistencePort.getOrderClient(idOrder,idClient);
-        orderPersistencePort.saveOrder(validOrderCanceled(idOrder,order));
-
+        Order order = orderPersistencePort.getOrderClient(idOrder, idClient);
+        orderPersistencePort.saveOrder(validOrderCanceled(idOrder, order));
     }
 }
-

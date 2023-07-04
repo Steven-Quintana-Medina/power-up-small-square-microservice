@@ -1,15 +1,15 @@
 package com.pragma.powerup.smallsquaremicroservice.domain.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pragma.powerup.smallsquaremicroservice.domain.enums.EnumStatusOrder;
 import com.pragma.powerup.smallsquaremicroservice.domain.exceptions.NonCancellableOrderException;
 import com.pragma.powerup.smallsquaremicroservice.domain.exceptions.OrderAlreadyNotifiedException;
 import com.pragma.powerup.smallsquaremicroservice.domain.exceptions.OrderNotFoundException;
-import com.pragma.powerup.smallsquaremicroservice.domain.model.MessageJson;
 import com.pragma.powerup.smallsquaremicroservice.domain.model.Order;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public class OrderService {
 
@@ -33,23 +33,29 @@ public class OrderService {
         throw new NonCancellableOrderException();
     }
 
-    public static String createJson(Order order, String phone, String pin) {
-        MessageJson messageJson = new MessageJson(phone, order.getIdRestaurant().getPhone(), pin);
+    public static Map<String, String> createMessageMap(Order order, String phone, String pin) {
+        Map<String, String> messageMap = new HashMap<>();
+        messageMap.put("phone", phone);
+        messageMap.put("restaurantPhone", order.getIdRestaurant().getPhone());
+        messageMap.put("pin", pin);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            return objectMapper.writeValueAsString(messageJson);
-        } catch (JsonProcessingException e) {
-            System.err.println("Error al serializar el objeto JSON: " + e.getMessage());
-            return null;
-        }
+        return messageMap;
     }
 
-    public static void exists(String valid) {
-        if (valid == null) {
-            throw new NullPointerException();
-        }
+    public static Map<String, Object> createTraceabilityMap(Order order, String previousState, Map<String, Object> infoClient,Map<String, Object> infoEmployee) {
+        Map<String, Object> traceabilityMap = new HashMap<>();
+
+        traceabilityMap.put("idOrder", order.getId());
+        traceabilityMap.put("idClient", order.getIdClient());
+        traceabilityMap.put("mailClient", infoClient.get("mail"));
+        traceabilityMap.put("currentState", order.getStatus().toString());
+        traceabilityMap.put("previousState", previousState);
+        traceabilityMap.put("idEmployee", order.getIdChef() != null ? order.getIdChef(): null);
+        traceabilityMap.put("mailEmployee", infoEmployee != null ? infoClient.get("mail") : null);
+        return traceabilityMap;
     }
+
+
 
     public static String codeSms(Order order, String phone) {
         int hash = 7;

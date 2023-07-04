@@ -1,9 +1,13 @@
 package com.pragma.powerup.smallsquaremicroservice.domain.datasource;
 
+import java.util.Map;
+
 public interface IUserClientPort {
-    boolean getOwner(Long id);
+    boolean validUserOwner(Long id);
 
-    boolean getEmployee(Long id);
+    boolean validUserEmployee(Long id);
 
-    String getClient(Long id);
+    Map<String, Object> getUserClient(Long id);
+
+    Map<String, Object> getUserClientAndEmployee(Long idClient, Long idEmployee);
 }

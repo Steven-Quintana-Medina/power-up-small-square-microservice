@@ -17,7 +17,7 @@ public class RestaurantEmployeeUseCase implements IRestaurantEmployeeServicePort
 
     @Override
     public void assignRestaurantEmployee(RestaurantEmployee restaurantEmployee, Long idOwner) {
-        boolean user = userClientPort.getEmployee(restaurantEmployee.getIdEmployee());
+        boolean user = userClientPort.validUserEmployee(restaurantEmployee.getIdEmployee());
         RestaurantService.ValidUser(user);
         restaurantEmployeePersistencePort.assignRestaurantEmployee(restaurantEmployee, idOwner);
     }

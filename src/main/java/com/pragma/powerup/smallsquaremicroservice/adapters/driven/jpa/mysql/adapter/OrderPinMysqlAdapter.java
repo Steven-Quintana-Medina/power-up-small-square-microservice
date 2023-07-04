@@ -20,7 +20,7 @@ public class OrderPinMysqlAdapter implements IOrderPinPersistencePort {
 
     @Override
     public OrderPin getIdAndeleteOrderPin(String pin, Long idEmployee) {
-        OrderPinEntity orderPin = orderPinRepository.findByPin(pin,idEmployee).orElseThrow(PinNotFoundException::new);
+        OrderPinEntity orderPin = orderPinRepository.findByPin(pin, idEmployee).orElseThrow(PinNotFoundException::new);
         orderPinRepository.deleteById(orderPin.getId());
         return orderPinEntityMapper.toModel(orderPin);
     }

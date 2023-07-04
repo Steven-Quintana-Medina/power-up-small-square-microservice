@@ -18,3 +18,6 @@ user-microservice:
 
 messenger-microservice:
   url: ${URL_MESSENGER_MICROSERVICE}
+
+traceability-microservice:
+  url: ${URL_TRACEABILITY_MICROSERVICE}

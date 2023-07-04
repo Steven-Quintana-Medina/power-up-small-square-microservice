@@ -2,25 +2,34 @@ package com.pragma.powerup.smallsquaremicroservice.adapters.driven.jpa.mysql.ada
 
 
 import com.pragma.powerup.smallsquaremicroservice.adapters.driven.jpa.mysql.restclient.IUserClient;
+import com.pragma.powerup.smallsquaremicroservice.config.converters.IJsonConverter;
 import com.pragma.powerup.smallsquaremicroservice.domain.datasource.IUserClientPort;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
 
 @RequiredArgsConstructor
 public class UserClientAdapter implements IUserClientPort {
     private final IUserClient userClient;
+    private final IJsonConverter jsonConverter;
 
     @Override
-    public boolean getOwner(Long id) {
-        return userClient.validUserOwner(id);
+    public boolean validUserOwner(Long id) {
+        return !userClient.validUserOwner(id).isEmpty();
     }
 
     @Override
-    public boolean getEmployee(Long id) {
-        return userClient.validUserEmployee(id);
+    public boolean validUserEmployee(Long id) {
+        return !userClient.validUserEmployee(id).isEmpty();
     }
 
     @Override
-    public String getClient(Long id) {
-        return userClient.getPhoneClient(id);
+    public Map<String, Object> getUserClient(Long id) {
+        return userClient.getUserClient(id);
+    }
+
+    @Override
+    public Map<String, Object> getUserClientAndEmployee(Long idClient, Long idEmployee) {
+        return null;
     }
 }

@@ -30,7 +30,7 @@ public class IOrderHandlerImpl implements IOrderHandler {
 
     @Override
     public void updateStatusToReady(Long id) {
-        orderServicePort.updateStatusToReady(id,jwtService.getIdToken(request.getHeader("Authorization")));
+        orderServicePort.updateStatusToReady(id, jwtService.getIdToken(request.getHeader("Authorization")));
     }
 
     @Override
@@ -40,7 +40,7 @@ public class IOrderHandlerImpl implements IOrderHandler {
 
     @Override
     public void updateStatusToDelivered(String pin) {
-        orderServicePort.updateStatusToDelivered(pin,jwtService.getIdToken(request.getHeader("Authorization")));
+        orderServicePort.updateStatusToDelivered(pin, jwtService.getIdToken(request.getHeader("Authorization")));
     }
 
     @Override
